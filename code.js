@@ -1,5 +1,5 @@
 /* Configure API_URL after deploying Apps Script as a Web App. */
-const API_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycbzJmy2-nl8hd2XZuCv2PDyF9_srQ36RLF7O1H-X4hBD7uxvvpty-T_oZntu61x3Vf5ltQ/exec";
 const PRICE_PER_PERSON = 40000;
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 let adminPassword = "";
