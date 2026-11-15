@@ -14,23 +14,30 @@
 <body>
 <div class="light-string" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <header class="site-header">
-  <div class="brand-logos">
-    <img src="assets/runderful-myanmar-logo.png" alt="RUNderful Myanmar" onerror="this.style.display='none'">
-    <span class="brand-divider"></span>
+  <div class="brand-logos brand-logos-left">
     <img src="assets/swal-sone-service-logo.png" alt="Swal-Sone-Service" onerror="this.style.display='none'">
   </div>
-  <div class="organizer">PRESENTED BY <strong>RUNderful Myanmar</strong></div>
+  <div class="organizer">
+    <img src="assets/runderful-myanmar-logo.png" alt="RUNderful Myanmar" onerror="this.style.display='none'">
+    <span>PRESENTED BY <strong>RUNderful Myanmar</strong></span>
+  </div>
 </header>
 <section class="hero">
   <img class="hero-photo" src="assets/bagan-heritage-hero.jpg" alt="Bagan and Heritage Hotel Bagan" onerror="this.style.display='none'">
   <div class="hero-shade"></div>
+  <div class="hero-party-decor" aria-hidden="true">
+    <span class="party-glass">🥂</span><span class="party-beer">🍺</span>
+    <span class="party-table">🍽️　🍴　🍷　🍽️</span>
+    <span class="party-table party-table-two">🍽️　🥗　🍗　🍽️</span>
+  </div>
   <div class="hero-content">
     <p class="eyebrow">A NIGHT TO CELEBRATE • BAGAN, MYANMAR</p>
     <h1>BAGAN MARATHON<br><em>2026</em></h1>
     <div class="gold-rule"></div>
-    <h2>OFFICIAL DINNER</h2>
+    <h2>OFFICIAL GALA DINNER</h2>
     <p class="hero-by">Organized by <b>RUNderful Myanmar</b></p>
-    <p class="hero-note">An unforgettable evening beneath the golden glow of Bagan</p>
+    <p class="hero-note">Buffet Dinner · Beer Free Flow</p>
+    <p class="hero-note hero-note-sub">An unforgettable evening beneath the golden glow of Bagan</p>
     <button class="gold-button" data-tab="register">RESERVE YOUR DINNER TICKET</button>
   </div>
 </section>
@@ -47,7 +54,7 @@
     <article class="feature"><div class="feature-icon">♧</div><h3>One Registration, Your Group</h3><p>Register for yourself or reserve seats for your group in one submission.</p></article>
     <article class="feature"><div class="feature-icon">♜</div><h3>Digital Dinner Ticket</h3><p>Receive your approved ticket by email or retrieve it online at any time.</p></article>
   </div>
-  <div class="price-banner"><span>DINNER TICKET</span><strong>40,000 <small>MMK / PERSON</small></strong></div>
+  <div class="price-banner"><span>GALA DINNER · BUFFET &amp; BEER FREE FLOW</span><strong>40,000 <small>MMK / PERSON</small></strong></div>
   <div class="section-heading compact"><h2>Secure Your Seat</h2><p>Complete registration and payment. Your ticket will be issued after payment verification and admin approval.</p><button class="gold-button" data-tab="register">REGISTER NOW</button></div>
 </section>
 <section id="register" class="panel">
@@ -61,16 +68,16 @@
       <label>Group Registration — Total Guests *
         <select name="guests" id="guestCount" required></select>
       </label>
-      <label>Payment Method<textarea name="remark" rows="2" maxlength="500" placeholder="Optional"></textarea></label>
+      <label>Additional Note (Optional)<textarea name="remark" rows="2" maxlength="500" placeholder="Any additional information (optional)"></textarea></label>
     </div>
     <div class="amount-box"><span>Total Amount</span><strong id="totalAmount">40,000 MMK</strong></div>
     <div class="payment-block">
-      <h3>Payment Methods</h3><p>Scan one of the official payment QR codes and complete your payment.</p>
+      <h3>Payment Method * (Required)</h3><p>Please select one payment method below. You cannot submit the registration without selecting a payment method.</p>
       <div class="qr-grid">
         <label class="qr-choice"><input type="radio" name="paymentMethod" value="KBZPay" required><img src="assets/QR-1.png" alt="KBZPay QR" onerror="this.style.opacity='.15'"><b>KBZPay</b></label>
-        <label class="qr-choice"><input type="radio" name="paymentMethod" value="CBPay"><img src="assets/QR-2.png" alt="CBPay QR" onerror="this.style.opacity='.15'"><b>CBPay</b></label>
-        <label class="qr-choice"><input type="radio" name="paymentMethod" value="AYAPay"><img src="assets/QR-3.png" alt="AYAPay QR" onerror="this.style.opacity='.15'"><b>AYAPay</b></label>
-        <label class="qr-choice"><input type="radio" name="paymentMethod" value="WavePay"><img src="assets/QR-4.png" alt="WavePay QR" onerror="this.style.opacity='.15'"><b>WavePay</b></label>
+        <label class="qr-choice"><input type="radio" name="paymentMethod" value="CBPay" required><img src="assets/QR-2.png" alt="CBPay QR" onerror="this.style.opacity='.15'"><b>CBPay</b></label>
+        <label class="qr-choice"><input type="radio" name="paymentMethod" value="AYAPay" required><img src="assets/QR-3.png" alt="AYAPay QR" onerror="this.style.opacity='.15'"><b>AYAPay</b></label>
+        <label class="qr-choice"><input type="radio" name="paymentMethod" value="WavePay" required><img src="assets/QR-4.png" alt="WavePay QR" onerror="this.style.opacity='.15'"><b>WavePay</b></label>
       </div>
       <label>Payment Reference *<input name="paymentReference" required maxlength="100" placeholder="Enter transaction / payment reference"></label>
       <label>Payment Screenshot *<input name="paymentFile" id="paymentFile" type="file" accept=".jpg,.jpeg,.png,.pdf,application/pdf,image/jpeg,image/png" required><small>Accepted: JPG, JPEG, PNG, PDF. Maximum 8 MB.</small></label>
