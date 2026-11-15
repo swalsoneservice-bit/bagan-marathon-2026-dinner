@@ -1,0 +1,8 @@
+Place your images in this folder using these exact names:
+- bagan-heritage-hero.jpg
+- runderful-myanmar-logo.png
+- swal-sone-service-logo.png
+- QR-1.png (KBZPay)
+- QR-2.png (CBPay)
+- QR-3.png (AYAPay)
+- QR-4.png (WavePay)
