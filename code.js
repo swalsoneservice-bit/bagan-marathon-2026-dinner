@@ -11,8 +11,49 @@ const count=$("#guestCount");for(let i=1;i<=20;i++){const o=document.createEleme
 count.addEventListener("change",()=>$("#totalAmount").textContent=(Number(count.value)*PRICE_PER_PERSON).toLocaleString()+" MMK");
 function message(el,txt,ok=false){el.textContent=txt;el.classList.toggle("success",ok)}
 async function api(action,data={}){if(!API_URL.startsWith("https://script.google.com/"))throw new Error("Website setup incomplete: Apps Script API URL has not been configured.");const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,...data})});const j=await r.json();if(!j.ok)throw new Error(j.error||"Request failed");return j}
-function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(",")[1]);r.onerror=reject;r.readAsDataURL(file)})}
-$("#registrationForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,btn=$("#submitRegistration"),m=$("#registrationMessage"),fd=new FormData(f),file=$("#paymentFile").files[0];if(!file)return message(m,"Please upload your payment screenshot.");if(file.size>MAX_UPLOAD_BYTES)return message(m,"File exceeds the 8 MB limit.");const allowed=["image/jpeg","image/png","application/pdf"];if(!allowed.includes(file.type))return message(m,"Only JPG, JPEG, PNG or PDF files are accepted.");btn.disabled=true;btn.textContent="SUBMITTING...";message(m,"Uploading securely. Please do not close this page.");try{const payload={name:fd.get("name").trim(),email:fd.get("email").trim(),phone:fd.get("phone").trim(),viber:fd.get("viber").trim(),guests:Number(fd.get("guests")),remark:fd.get("remark").trim(),paymentMethod:fd.get("paymentMethod"),paymentReference:fd.get("paymentReference").trim(),fileName:file.name,fileMimeType:file.type,fileBase64:await fileToBase64(file)};const result=await api("register",payload);f.reset();$("#totalAmount").textContent="40,000 MMK";message(m,`Registration received. Your Registration ID is ${result.registrationId}. Payment is pending admin verification.`,true);}catch(err){message(m,err.message)}finally{btn.disabled=false;btn.textContent="SUBMIT REGISTRATION"}});
+function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(",")[1]);r.onerror=()=>reject(new Error("Could not read the payment file. Please try again."));r.readAsDataURL(file)})}
+async function optimizePaymentImage(file){
+  if(!file.type.startsWith("image/")||!("createImageBitmap" in window))return file;
+  try{
+    const bitmap=await createImageBitmap(file);
+    const maxEdge=2000,scale=Math.min(1,maxEdge/Math.max(bitmap.width,bitmap.height));
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+    canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    const ctx=canvas.getContext("2d",{alpha:false});
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.90));
+    if(!blob||blob.size>=file.size*.95)return file;
+    const baseName=file.name.replace(/\.[^.]+$/,"");
+    return new File([blob],baseName+".jpg",{type:"image/jpeg",lastModified:Date.now()});
+  }catch(err){console.warn("Payment image optimization skipped:",err);return file}
+}
+$("#registrationForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=e.currentTarget,btn=$("#submitRegistration"),m=$("#registrationMessage"),fd=new FormData(f),file=$("#paymentFile").files[0];
+  if(!file)return message(m,"Please upload your payment screenshot.");
+  if(file.size>MAX_UPLOAD_BYTES)return message(m,"File exceeds the 8 MB limit.");
+  const allowed=["image/jpeg","image/png","application/pdf"];
+  if(!allowed.includes(file.type))return message(m,"Only JPG, JPEG, PNG or PDF files are accepted.");
+  btn.disabled=true;btn.textContent="PREPARING...";
+  try{
+    message(m,"Preparing your payment proof. Please keep this page open.");
+    const uploadFile=await optimizePaymentImage(file);
+    const base64=await fileToBase64(uploadFile);
+    btn.textContent="SENDING...";
+    message(m,uploadFile.size<file.size? `Image optimized (${Math.max(1,Math.round((1-uploadFile.size/file.size)*100))}% smaller). Sending registration securely...` : "Sending registration and payment proof securely. Please do not close this page.");
+    const payload={
+      name:fd.get("name").trim(),email:fd.get("email").trim(),phone:fd.get("phone").trim(),viber:fd.get("viber").trim(),
+      guests:Number(fd.get("guests")),remark:fd.get("remark").trim(),paymentMethod:fd.get("paymentMethod"),
+      paymentReference:fd.get("paymentReference").trim(),fileName:uploadFile.name,fileMimeType:uploadFile.type,fileBase64:base64
+    };
+    const result=await api("register",payload);
+    f.reset();$("#totalAmount").textContent="40,000 MMK";
+    message(m,`Registration received. Your Registration ID is ${result.registrationId}. Payment is pending admin verification.`,true);
+  }catch(err){message(m,err.message||"Registration failed. Please try again.")}
+  finally{btn.disabled=false;btn.textContent="SUBMIT REGISTRATION"}
+});
 async function loadGuests(){const list=$("#officialGuestList");list.innerHTML="<li>Loading...</li>";try{const r=await api("publicGuestList");window.approvedNames=r.names||[];renderGuests()}catch(e){list.innerHTML="<li>Guest list is temporarily unavailable.</li>";$("#guestTotal").textContent="";}}
 function renderGuests(){const q=$("#guestSearch").value.toLowerCase();const names=(window.approvedNames||[]).filter(n=>n.toLowerCase().includes(q));$("#officialGuestList").innerHTML=names.length?names.map(n=>`<li>${escapeHtml(n)}</li>`).join(""):"<li>No approved guests found.</li>";$("#guestTotal").textContent=`${names.length} guest name(s)`}
 $("#guestSearch").addEventListener("input",renderGuests);
