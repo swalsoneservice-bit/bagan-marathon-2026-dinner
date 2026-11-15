@@ -85,3 +85,17 @@ opacity:.78;mix-blend-mode:screen;animation:discoPulse 2.8s steps(2,end) infinit
  .hero-note-sub{font-size:17px}
 }
 @media(prefers-reduced-motion:reduce){.hero-shade::before{animation:none!important;opacity:.45}}
+
+
+/* Bagan Marathon identity and gala dinner information cards */
+.bagan-event-logo{width:clamp(112px,18vw,176px);height:clamp(112px,18vw,176px);margin:0 auto 18px;padding:10px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#fff5d6 0%,#e9c77f 38%,#9c6c2e 72%,#3b3022 100%);border:2px solid rgba(255,231,174,.95);box-shadow:0 0 0 6px rgba(214,173,98,.16),0 12px 35px rgba(0,0,0,.35),0 0 32px rgba(255,211,112,.28)}
+.bagan-event-logo img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(37,29,17,.28))}
+.event-details{max-width:920px;margin:32px auto 42px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.event-detail-card{display:flex;align-items:center;gap:14px;min-width:0;padding:20px 18px;background:linear-gradient(145deg,#fffefa,#f6eddd);border:1px solid #e4cfaa;border-radius:12px;box-shadow:0 9px 24px rgba(54,38,15,.08);color:#213c45;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.event-detail-card:hover{transform:translateY(-3px);box-shadow:0 13px 28px rgba(54,38,15,.14)}
+.event-detail-icon{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#f4dfad,#d0a253);font-size:22px}
+.event-detail-card small{display:block;color:#9b7136;font-size:10px;font-weight:800;letter-spacing:1.3px;margin-bottom:6px}
+.event-detail-card strong{display:block;color:#203e48;font-size:17px;line-height:1.35}
+.event-detail-card em{display:block;margin-top:5px;color:#8b6532;font-size:11px;font-style:normal}
+.event-location{cursor:pointer}
+@media(max-width:700px){.bagan-event-logo{width:112px;height:112px;margin-bottom:14px}.event-details{grid-template-columns:1fr;gap:10px;margin:24px auto 32px}.event-detail-card{padding:16px}.event-detail-card strong{font-size:15px}}
