@@ -34,3 +34,12 @@
  .ticket-card #ticketQr{padding:6px;margin:10px auto}
  .ticket-card #ticketQr img,.ticket-card #ticketQr canvas{width:140px!important;height:140px!important}
 }
+
+
+/* Soft animated aurora glow for the Bagan hero */
+.hero{isolation:isolate}
+.hero-shade{background:linear-gradient(90deg,rgba(9,22,28,.78),rgba(16,28,33,.34),rgba(9,22,28,.72)),linear-gradient(0deg,rgba(9,22,28,.58),transparent)}
+.hero-shade::after{content:"";position:absolute;inset:-24%;pointer-events:none;background:radial-gradient(ellipse at 18% 32%,rgba(40,190,174,.32),transparent 34%),radial-gradient(ellipse at 78% 24%,rgba(190,105,190,.28),transparent 32%),radial-gradient(ellipse at 55% 82%,rgba(235,174,76,.30),transparent 38%);filter:blur(24px);mix-blend-mode:screen;opacity:.9;animation:heroAurora 16s ease-in-out infinite alternate}
+@keyframes heroAurora{0%{transform:translate3d(-2%,1%,0) scale(1);opacity:.65}50%{transform:translate3d(2%,-2%,0) scale(1.08);opacity:.95}100%{transform:translate3d(-1%,2%,0) scale(1.03);opacity:.75}}
+.hero-content{text-shadow:0 2px 16px rgba(0,0,0,.25)}
+@media(prefers-reduced-motion:reduce){.hero-shade::after{animation:none!important}}
