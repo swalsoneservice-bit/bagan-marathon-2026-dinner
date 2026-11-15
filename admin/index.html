@@ -14,6 +14,27 @@
 .admin-row{overflow-wrap:anywhere}
 .admin-row button{cursor:pointer}
 .status-pill{font-weight:700}.admin-row{border-bottom:1px solid #ddd;padding:14px 0}.admin-row button{margin:5px}.edit-panel{margin:12px 0;padding:16px;border:1px solid #d8c69a;border-radius:8px;background:#fffaf0}.edit-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.edit-form label{display:block}.edit-form input,.edit-form textarea,.edit-form select{width:100%;box-sizing:border-box;padding:10px;margin-top:5px}.edit-actions{display:flex;gap:8px;flex-wrap:wrap}
+.capacity-overview{margin:18px 0 24px;padding:20px;border:1px solid #e4d5b4;border-radius:14px;background:linear-gradient(135deg,#fffdf7,#f5f8f7);color:#18323a}
+.capacity-overview h3{margin:0 0 5px;color:#18323a}
+.capacity-overview .capacity-subtitle{margin:0 0 16px;color:#63747a;font-size:.92rem}
+.capacity-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.capacity-stat{padding:14px;border-radius:10px;background:#fff;border:1px solid #e9e5dc}
+.capacity-stat span{display:block;color:#6c777a;font-size:.82rem}
+.capacity-stat strong{display:block;margin-top:5px;font-size:clamp(1.45rem,3vw,2rem);color:#18323a;font-variant-numeric:tabular-nums}
+.capacity-chart-row{display:flex;align-items:center;gap:22px;margin-top:20px;flex-wrap:wrap}
+.capacity-donut{width:150px;height:150px;flex:0 0 150px;border-radius:50%;background:conic-gradient(#d4a64e 0 var(--used),#e6ecea var(--used) 100%);display:grid;place-items:center;position:relative}
+.capacity-donut:before{content:"";position:absolute;inset:13px;border-radius:50%;background:#fffdf7}
+.capacity-donut-inner{position:relative;text-align:center;z-index:1}
+.capacity-donut-inner strong{display:block;font-size:1.55rem;color:#18323a}
+.capacity-donut-inner small{color:#657478}
+.capacity-legend{flex:1;min-width:190px}
+.capacity-legend p{margin:7px 0;color:#44575d}
+.capacity-key{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;background:#d4a64e}
+.capacity-key.left{background:#e6ecea;border:1px solid #cbd5d1}
+.capacity-progress{height:12px;background:#e6ecea;border-radius:99px;overflow:hidden;margin-top:12px}
+.capacity-progress>span{display:block;height:100%;width:var(--used);background:linear-gradient(90deg,#2a9d8f,#d4a64e);border-radius:99px;transition:width .4s ease}
+@media(max-width:600px){.capacity-grid{grid-template-columns:1fr}.capacity-chart-row{gap:15px}.capacity-donut{width:128px;height:128px;flex-basis:128px}}
+
 </style>
 </head>
 <body>
@@ -52,6 +73,33 @@ $("#adminLogin").addEventListener("submit",async e=>{
  }catch(error){msg($("#adminMessage"),error.message)}
  finally{button.disabled=false;button.textContent="ADMIN LOGIN"}
 });
+function renderCapacityOverview(records, capacity){
+ const limit=Math.max(0,Number(capacity)||0);
+ // Pending and Approved guests occupy capacity; Rejected registrations release it.
+ const occupied=(records||[]).filter(x=>String(x.approvalStatus||"").toLowerCase()!=="rejected")
+   .reduce((sum,x)=>sum+Math.max(0,Number(x.guests)||0),0);
+ const left=Math.max(0,limit-occupied);
+ const usedPct=limit>0?Math.min(100,Math.round(occupied/limit*100)):0;
+ const leftPct=limit>0?Math.max(0,100-usedPct):0;
+ const safePct=Number.isFinite(usedPct)?usedPct:0;
+ $("#capacityOverview").innerHTML=
+  '<h3>Guest Capacity Overview</h3>'+
+  '<p class="capacity-subtitle">Pending and approved guests count toward reserved capacity. Rejected registrations are excluded.</p>'+
+  '<div class="capacity-grid">'+
+   '<div class="capacity-stat"><span>Total Guest Capacity</span><strong>'+limit.toLocaleString()+'</strong></div>'+
+   '<div class="capacity-stat"><span>Reserved Guests</span><strong>'+occupied.toLocaleString()+'</strong></div>'+
+   '<div class="capacity-stat"><span>Available Guests Left</span><strong>'+left.toLocaleString()+'</strong></div>'+
+  '</div>'+
+  '<div class="capacity-chart-row">'+
+   '<div class="capacity-donut" style="--used:'+safePct+'%"><div class="capacity-donut-inner"><strong>'+safePct+'%</strong><small>Capacity used</small></div></div>'+
+   '<div class="capacity-legend">'+
+    '<p><span class="capacity-key"></span><b>'+safePct+'%</b> capacity reached</p>'+
+    '<p><span class="capacity-key left"></span><b>'+leftPct+'%</b> capacity remaining</p>'+
+    '<p><b>'+left.toLocaleString()+'</b> guest slot(s) remaining out of '+limit.toLocaleString()+'</p>'+
+    '<div class="capacity-progress" role="progressbar" aria-label="Guest capacity used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+safePct+'" style="--used:'+safePct+'%"><span></span></div>'+
+   '</div>'+
+  '</div>';
+}
 function renderAdminRecords(records){
  const methods=["KBZPay","CBPay","AYAPay","WavePay"];
  const getMethod=x=>{const v=String(x.paymentMethod??"").trim();return methods.find(m=>m.toLowerCase()===v.toLowerCase())||"Other"};
@@ -71,10 +119,11 @@ async function loadAdmin(){
  const box=$("#adminDashboard");box.hidden=false;box.innerHTML='<div class="form-card">Loading dashboard...</div>';
  try{
   const r=await api("adminList",{password:adminPassword});
-  box.innerHTML='<div class="form-card"><h2>Capacity & Registration Control</h2><p>Approved guests: <b>'+esc(r.stats.approvedGuests)+'</b> · Pending registrations: <b>'+esc(r.stats.pending)+'</b></p><label>Maximum Guest Capacity<input id="capacityInput" type="number" min="1" value="'+esc(r.settings.capacity||100)+'"></label><label><input id="openInput" type="checkbox" '+(r.settings.open?'checked':'')+'> Registration Open</label><button class="gold-button" id="saveSettings">SAVE SETTINGS</button><p id="settingMessage" class="message"></p><h2>Registrations by Payment Method</h2><div id="paymentMethodSummary" class="payment-method-summary"></div><label>Filter by Payment Method<select id="paymentMethodFilter"><option value="All">All Payment Methods</option><option value="KBZPay">KBZPay</option><option value="CBPay">CBPay</option><option value="AYAPay">AYAPay</option><option value="WavePay">WavePay</option><option value="Other">Other / Not specified</option></select></label><button class="gold-button" id="exportCsv">EXPORT CSV</button><div id="adminRows"></div></div>';
-  $("#saveSettings").onclick=async()=>{try{await api("saveSettings",{password:adminPassword,capacity:Number($("#capacityInput").value),open:$("#openInput").checked});msg($("#settingMessage"),"Settings saved.",true)}catch(e){msg($("#settingMessage"),e.message)}};
+  const records=Array.isArray(r.records)?r.records:[];
+  box.innerHTML='<div class="form-card"><div id="capacityOverview" class="capacity-overview"></div><h2>Capacity & Registration Control</h2><p>Approved guests: <b>'+esc(r.stats.approvedGuests)+'</b> · Pending registrations: <b>'+esc(r.stats.pending)+'</b></p><label>Maximum Guest Capacity<input id="capacityInput" type="number" min="1" value="'+esc(r.settings.capacity||100)+'"></label><label><input id="openInput" type="checkbox" '+(r.settings.open?'checked':'')+'> Registration Open</label><button class="gold-button" id="saveSettings">SAVE SETTINGS</button><p id="settingMessage" class="message"></p><h2>Registrations by Payment Method</h2><div id="paymentMethodSummary" class="payment-method-summary"></div><label>Filter by Payment Method<select id="paymentMethodFilter"><option value="All">All Payment Methods</option><option value="KBZPay">KBZPay</option><option value="CBPay">CBPay</option><option value="AYAPay">AYAPay</option><option value="WavePay">WavePay</option><option value="Other">Other / Not specified</option></select></label><button class="gold-button" id="exportCsv">EXPORT CSV</button><div id="adminRows"></div></div>';
+  $("#saveSettings").onclick=async()=>{const button=$("#saveSettings");button.disabled=true;try{const capacity=Number($("#capacityInput").value);if(!Number.isInteger(capacity)||capacity<1)throw new Error("Enter a valid capacity of at least 1.");await api("saveSettings",{password:adminPassword,capacity,open:$("#openInput").checked});await loadAdmin();msg($("#settingMessage"),"Settings saved. Capacity chart updated.",true)}catch(e){msg($("#settingMessage"),e.message);button.disabled=false}};
   $("#exportCsv").onclick=()=>{const records=Array.isArray(r.records)?r.records:[];const rows=[["Registration ID","Name","Email","Phone","Guests","Amount","Payment Method","Payment Reference","Payment Status","Approval Status"],...records.map(x=>[x.registrationId,x.name,x.email,x.phone,x.guests,x.amount,x.paymentMethod,x.paymentReference,x.paymentStatus,x.approvalStatus])];const csv="\ufeff"+rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="bagan-dinner-registrations.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-  renderAdminRecords(r.records||[]);$("#paymentMethodFilter").onchange=()=>renderAdminRecords(r.records||[]);
+  renderCapacityOverview(records,r.settings.capacity||100);renderAdminRecords(records);$("#paymentMethodFilter").onchange=()=>renderAdminRecords(records);
   document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>showEditForm((r.records||[]).find(x=>x.registrationId===b.dataset.edit)));
   document.querySelectorAll("[data-approve]").forEach(b=>b.onclick=()=>updateApproval(b.dataset.approve,"Approved"));
   document.querySelectorAll("[data-reject]").forEach(b=>b.onclick=()=>updateApproval(b.dataset.reject,"Rejected"));
