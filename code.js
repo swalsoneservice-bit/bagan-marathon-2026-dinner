@@ -17,7 +17,45 @@ async function loadGuests(){const list=$("#officialGuestList");list.innerHTML="<
 function renderGuests(){const q=$("#guestSearch").value.toLowerCase();const names=(window.approvedNames||[]).filter(n=>n.toLowerCase().includes(q));$("#officialGuestList").innerHTML=names.length?names.map(n=>`<li>${escapeHtml(n)}</li>`).join(""):"<li>No approved guests found.</li>";$("#guestTotal").textContent=`${names.length} guest name(s)`}
 $("#guestSearch").addEventListener("input",renderGuests);
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function makeTicket(t){$("#ticketArea").innerHTML=`<div class="ticket-card" id="printTicket"><div class="ticket-id">BAGAN MARATHON 2026 · OFFICIAL DINNER</div><h3>DINNER ADMISSION</h3><p>Organized by RUNderful Myanmar</p><div class="gold-rule"></div><div class="ticket-name">${escapeHtml(t.name)}</div><div class="ticket-guests">TOTAL GUESTS: ${Number(t.guests)}</div><div id="ticketQr"></div><div class="ticket-id">${escapeHtml(t.registrationId)}</div><p>Website Development by Swal-Sone-Service</p></div><div class="ticket-actions"><button class="gold-button" onclick="window.print()">DOWNLOAD / SAVE AS PDF</button></div>`;new QRCode($("#ticketQr"),{text:t.verifyUrl,width:190,height:190,colorDark:"#142b35",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});}
+let qrCodeLoadPromise;
+function loadQRCodeLibrary(){
+  if(window.QRCode)return Promise.resolve(window.QRCode);
+  if(qrCodeLoadPromise)return qrCodeLoadPromise;
+  const sources=[
+    "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
+    "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js",
+    "https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"
+  ];
+  qrCodeLoadPromise=(async()=>{
+    for(const src of sources){
+      try{
+        await new Promise((resolve,reject)=>{
+          const script=document.createElement("script");
+          script.src=src;
+          script.async=true;
+          script.onload=()=>window.QRCode?resolve():reject(new Error("QR library did not initialize"));
+          script.onerror=()=>reject(new Error("QR library could not be loaded"));
+          document.head.appendChild(script);
+        });
+        if(window.QRCode)return window.QRCode;
+      }catch(err){console.warn("QR library source failed:",src,err);}
+    }
+    throw new Error("QR Code library could not be loaded. Please refresh the page and try again.");
+  })();
+  return qrCodeLoadPromise;
+}
+async function makeTicket(t){
+  $("#ticketArea").innerHTML=`<div class="ticket-card" id="printTicket"><div class="ticket-id">BAGAN MARATHON 2026 · OFFICIAL DINNER</div><h3>DINNER ADMISSION</h3><p>Organized by RUNderful Myanmar</p><div class="gold-rule"></div><div class="ticket-name">${escapeHtml(t.name)}</div><div class="ticket-guests">TOTAL GUESTS: ${Number(t.guests)}</div><div id="ticketQr">Loading QR Code...</div><div class="ticket-id">${escapeHtml(t.registrationId)}</div><p>Website Development by Swal-Sone-Service</p></div><div class="ticket-actions"><button class="gold-button" onclick="window.print()">DOWNLOAD / SAVE AS PDF</button></div>`;
+  try{
+    const QR=await loadQRCodeLibrary();
+    const target=$("#ticketQr");
+    target.textContent="";
+    new QR(target,{text:t.verifyUrl,width:190,height:190,colorDark:"#142b35",colorLight:"#ffffff",correctLevel:QR.CorrectLevel.M});
+  }catch(err){
+    $("#ticketQr").textContent="QR Code unavailable. Please refresh and try again.";
+    console.error(err);
+  }
+}
 $("#ticketLookup").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget),m=$("#ticketMessage");$("#ticketArea").innerHTML="";try{const r=await api("getTicket",{registrationId:f.get("registrationId").trim(),email:f.get("email").trim()});if(r.ticket)makeTicket(r.ticket);message(m,"Approved ticket found.",true)}catch(err){message(m,err.message)}});
 async function verifyTicket(){const id=new URLSearchParams(location.search).get("verify");if(!id)return;showTab("verify");try{const r=await api("verifyTicket",{registrationId:id});const t=r.ticket;$("#verifyResult").innerHTML=`<h2>${escapeHtml(t.name)}</h2><p>Email: ${escapeHtml(t.email)}</p><p>Phone: ${escapeHtml(t.phone)}</p><p>Total Guests: <b>${Number(t.guests)}</b></p><p>Registration ID: ${escapeHtml(t.registrationId)}</p><p class="message success">APPROVED · VALID DINNER TICKET</p>`}catch(e){$("#verifyResult").textContent="Ticket could not be verified: "+e.message}}
 $("#adminLogin").addEventListener("submit",async e=>{e.preventDefault();const pw=new FormData(e.currentTarget).get("password");try{await api("adminList",{password:pw});adminPassword=pw;message($("#adminMessage"),"Login successful.",true);$("#adminLogin").hidden=true;loadAdmin()}catch(err){message($("#adminMessage"),err.message)}});
