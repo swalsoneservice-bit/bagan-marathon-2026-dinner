@@ -5,7 +5,7 @@ const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 let adminPassword = "";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
-function showTab(id){$$(".panel").forEach(p=>p.classList.toggle("active",p.id===id));$$(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));if(id==="guests")loadGuests();if(id==="admin"&&adminPassword)loadAdmin();window.scrollTo({top:0,behavior:"smooth"});}
+function showTab(id){$(".panel").forEach(p=>p.classList.toggle("active",p.id===id));$(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));if(id==="guests")loadGuests();if(id==="admin"&&adminPassword)loadAdmin();document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"});}
 $$("[data-tab]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();showTab(b.dataset.tab)}));
 const count=$("#guestCount");for(let i=1;i<=20;i++){const o=document.createElement("option");o.value=i;o.textContent=`${i} ${i===1?"Person":"People"}`;count.append(o)}
 count.addEventListener("change",()=>$("#totalAmount").textContent=(Number(count.value)*PRICE_PER_PERSON).toLocaleString()+" MMK");
