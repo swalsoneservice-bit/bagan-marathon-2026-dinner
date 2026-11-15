@@ -13,7 +13,7 @@
 #adminDashboard[hidden],#adminLogin[hidden]{display:none!important}
 .admin-row{overflow-wrap:anywhere}
 .admin-row button{cursor:pointer}
-.status-pill{font-weight:700}
+.status-pill{font-weight:700}.admin-row{border-bottom:1px solid #ddd;padding:14px 0}.admin-row button{margin:5px}.edit-panel{margin:12px 0;padding:16px;border:1px solid #d8c69a;border-radius:8px;background:#fffaf0}.edit-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.edit-form label{display:block}.edit-form input,.edit-form textarea,.edit-form select{width:100%;box-sizing:border-box;padding:10px;margin-top:5px}.edit-actions{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -59,10 +59,34 @@ async function loadAdmin(){
   box.innerHTML='<div class="form-card"><h2>Capacity & Registration Control</h2><p>Approved guests: <b>'+esc(r.stats.approvedGuests)+'</b> · Pending registrations: <b>'+esc(r.stats.pending)+'</b></p><label>Maximum Guest Capacity<input id="capacityInput" type="number" min="1" value="'+esc(r.settings.capacity||100)+'"></label><label><input id="openInput" type="checkbox" '+(r.settings.open?'checked':'')+'> Registration Open</label><button class="gold-button" id="saveSettings">SAVE SETTINGS</button><p id="settingMessage" class="message"></p><h2>Registrations</h2><button class="gold-button" id="exportCsv">EXPORT CSV</button><div id="adminRows"></div></div>';
   $("#saveSettings").onclick=async()=>{try{await api("saveSettings",{password:adminPassword,capacity:Number($("#capacityInput").value),open:$("#openInput").checked});msg($("#settingMessage"),"Settings saved.",true)}catch(e){msg($("#settingMessage"),e.message)}};
   $("#exportCsv").onclick=()=>{const rows=[["Registration ID","Name","Email","Phone","Guests","Amount","Payment Reference","Payment Status","Approval Status"],...(r.records||[]).map(x=>[x.registrationId,x.name,x.email,x.phone,x.guests,x.amount,x.paymentReference,x.paymentStatus,x.approvalStatus])];const csv=rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv"}));a.download="bagan-dinner-registrations.csv";a.click();URL.revokeObjectURL(a.href)};
-  $("#adminRows").innerHTML=(r.records||[]).map(x=>'<div class="admin-row"><b>'+esc(x.name)+'</b> · '+esc(x.guests)+' guest(s)<br><small>'+esc(x.registrationId)+' · '+esc(x.paymentMethod)+' · '+esc(x.paymentReference)+' · '+esc(x.approvalStatus)+'</small><br><a href="'+esc(x.screenshotUrl)+'" target="_blank" rel="noopener">View payment proof</a><br><button data-approve="'+esc(x.registrationId)+'">APPROVE</button> <button data-reject="'+esc(x.registrationId)+'">REJECT</button></div>').join("")||"<p>No registrations found.</p>";
+  $("#adminRows").innerHTML=(r.records||[]).map(x=>'<div class="admin-row"><b>'+esc(x.name)+'</b> · '+esc(x.guests)+' guest(s)<br><small>'+esc(x.registrationId)+' · '+esc(x.paymentMethod)+' · '+esc(x.paymentReference)+' · '+esc(x.approvalStatus)+'</small><br><span>Email: '+esc(x.email)+' · Phone: '+esc(x.phone)+'</span><br><a href="'+esc(x.screenshotUrl)+'" target="_blank" rel="noopener">View payment proof</a><br><button data-edit="'+esc(x.registrationId)+'">EDIT</button> <button data-approve="'+esc(x.registrationId)+'">APPROVE</button> <button data-reject="'+esc(x.registrationId)+'">REJECT</button><div id="edit-'+esc(x.registrationId)+'"></div></div>').join("")||"<p>No registrations found.</p>";
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>showEditForm((r.records||[]).find(x=>x.registrationId===b.dataset.edit)));
   document.querySelectorAll("[data-approve]").forEach(b=>b.onclick=()=>updateApproval(b.dataset.approve,"Approved"));
   document.querySelectorAll("[data-reject]").forEach(b=>b.onclick=()=>updateApproval(b.dataset.reject,"Rejected"));
  }catch(e){box.innerHTML='<div class="form-card message">'+esc(e.message)+'</div>'}
+}
+
+function showEditForm(x){
+ if(!x)return;
+ const host=document.getElementById("edit-"+x.registrationId);
+ host.innerHTML='<form class="edit-panel edit-form">'+
+ '<label>Full Name<input name="name" maxlength="120" required value="'+esc(x.name)+'"></label>'+
+ '<label>Email<input name="email" type="email" maxlength="180" required value="'+esc(x.email)+'"></label>'+
+ '<label>Phone<input name="phone" maxlength="30" required value="'+esc(x.phone)+'"></label>'+
+ '<label>Viber<input name="viber" maxlength="30" value="'+esc(x.viber||"")+'"></label>'+
+ '<label>Number of Guests<input name="guests" type="number" min="1" max="20" required value="'+esc(x.guests)+'"></label>'+
+ '<label>Payment Method<select name="paymentMethod"><option value="KBZPay" '+(x.paymentMethod==="KBZPay"?"selected":"")+'>KBZPay</option><option value="CBPay" '+(x.paymentMethod==="CBPay"?"selected":"")+'>CBPay</option><option value="AYAPay" '+(x.paymentMethod==="AYAPay"?"selected":"")+'>AYAPay</option><option value="WavePay" '+(x.paymentMethod==="WavePay"?"selected":"")+'>WavePay</option></select></label>'+
+ '<label>Payment Reference<input name="paymentReference" maxlength="100" required value="'+esc(x.paymentReference)+'"></label>'+
+ '<label style="grid-column:1/-1">Remark<textarea name="remark" maxlength="500">'+esc(x.remark||"")+'</textarea></label>'+
+ '<div class="edit-actions" style="grid-column:1/-1"><button class="gold-button" type="submit">SAVE CHANGES</button><button type="button" data-cancel>Cancel</button><span class="message" role="status"></span></div></form>';
+ const form=host.querySelector("form");
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();const button=form.querySelector('[type="submit"]');button.disabled=true;
+  const d=Object.fromEntries(new FormData(form).entries());d.guests=Number(d.guests);
+  try{await api("updateRecord",{password:adminPassword,registrationId:x.registrationId,record:d});await loadAdmin();alert("Registration updated successfully.");}
+  catch(err){msg(form.querySelector(".message"),err.message);button.disabled=false;}
+ });
+ form.querySelector("[data-cancel]").onclick=()=>host.innerHTML="";
 }
 async function updateApproval(id,status){if(!confirm(status+" this registration?"))return;try{await api("updateApproval",{password:adminPassword,registrationId:id,status});await loadAdmin()}catch(e){alert(e.message)}}
 </script>
