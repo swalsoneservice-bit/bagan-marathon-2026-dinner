@@ -50,7 +50,7 @@ async function makeTicket(t){
     const QR=await loadQRCodeLibrary();
     const target=$("#ticketQr");
     target.textContent="";
-    new QR(target,{text:t.verifyUrl,width:190,height:190,colorDark:"#142b35",colorLight:"#ffffff",correctLevel:QR.CorrectLevel.M});
+    new QR(target,{text:t.verifyUrl,width:150,height:150,colorDark:"#142b35",colorLight:"#ffffff",correctLevel:QR.CorrectLevel.M});
   }catch(err){
     $("#ticketQr").textContent="QR Code unavailable. Please refresh and try again.";
     console.error(err);
