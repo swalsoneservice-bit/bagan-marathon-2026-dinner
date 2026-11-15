@@ -54,7 +54,7 @@ $("#registrationForm").addEventListener("submit",async e=>{
   }catch(err){message(m,err.message||"Registration failed. Please try again.")}
   finally{btn.disabled=false;btn.textContent="SUBMIT REGISTRATION"}
 });
-function formatDinnerDate(value){const d=new Date(String(value||"2026-11-22")+"T00:00:00Z");if(Number.isNaN(d.getTime()))return String(value||"22-Nov-2026");return new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"}).format(d).replace(/ /g,"-");}
+function formatDinnerDate(value){const d=new Date(String(value||"2026-11-22")+"T00:00:00Z");if(Number.isNaN(d.getTime()))return String(value||"2026-11-22");const day=String(d.getUTCDate()).padStart(2,"0");const month=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getUTCMonth()];return `${day}/${month}/${d.getUTCFullYear()}`;}
 function formatDinnerTime(value){const m=String(value||"18:00").match(/^(\d{1,2}):(\d{2})$/);if(!m)return String(value||"6:00 PM");const h=Number(m[1]),min=m[2],ampm=h>=12?"PM":"AM",hour=h%12||12;return hour+":"+min+" "+ampm;}
 async function loadPublicDinnerDetails(){try{const r=await api("publicSettings");if(!r.settings)return;const date=$("#dinnerDate"),time=$("#dinnerTime");if(date)date.textContent=formatDinnerDate(r.settings.eventDate);if(time)time.textContent=formatDinnerTime(r.settings.eventTime);}catch(e){console.warn("Could not load current dinner date/time:",e.message)}}
 async function loadGuests(){const list=$("#officialGuestList");list.innerHTML="<li>Loading...</li>";try{const r=await api("publicGuestList");window.approvedNames=r.names||[];renderGuests()}catch(e){list.innerHTML="<li>Guest list is temporarily unavailable.</li>";$("#guestTotal").textContent="";}}
