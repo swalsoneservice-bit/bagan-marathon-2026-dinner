@@ -13,6 +13,14 @@
 #adminDashboard[hidden],#adminLogin[hidden]{display:none!important}
 .admin-row{overflow-wrap:anywhere}
 .admin-row button{cursor:pointer}
+.admin-row .admin-action{border:0;border-radius:6px;padding:10px 15px;font-weight:800;letter-spacing:.4px;min-height:38px;transition:filter .15s,transform .15s}
+.admin-row .admin-action:hover{filter:brightness(.94);transform:translateY(-1px)}
+.admin-row .admin-edit{background:#f2c14e;color:#382800;border:1px solid #d6a52d}
+.admin-row .admin-approve{background:#f1f3f4;color:#34434a;border:1px solid #cbd2d5}
+.admin-row .admin-approve.is-approved{background:#218a52;color:#fff;border:1px solid #176b3e}
+.admin-row .admin-reject{background:#c83e43;color:#fff;border:1px solid #a92e34}
+.admin-row .admin-action:focus-visible{outline:3px solid #142b35;outline-offset:2px}
+.admin-row .admin-action:disabled{opacity:.65;cursor:wait;transform:none}
 .status-pill{font-weight:700}.admin-row{border-bottom:1px solid #ddd;padding:14px 0}.admin-row button{margin:5px}.edit-panel{margin:12px 0;padding:16px;border:1px solid #d8c69a;border-radius:8px;background:#fffaf0}.edit-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.edit-form label{display:block}.edit-form input,.edit-form textarea,.edit-form select{width:100%;box-sizing:border-box;padding:10px;margin-top:5px}.edit-actions{display:flex;gap:8px;flex-wrap:wrap}
 .capacity-overview{margin:18px 0 24px;padding:20px;border:1px solid #e4d5b4;border-radius:14px;background:linear-gradient(135deg,#fffdf7,#f5f8f7);color:#18323a}
 .capacity-overview h3{margin:0 0 5px;color:#18323a}
@@ -110,7 +118,7 @@ function renderAdminRecords(records){
  }).join("");
  const selected=$("#paymentMethodFilter").value;
  const filtered=selected==="All"?records:records.filter(x=>getMethod(x)===selected);
- $("#adminRows").innerHTML=filtered.map(x=>'<div class="admin-row"><b>'+esc(x.name)+'</b> · '+esc(x.guests)+' guest(s)<br><small>Payment Method: <b>'+esc(x.paymentMethod||"Not specified")+'</b><br>'+esc(x.registrationId)+' · '+esc(x.paymentReference)+' · '+esc(x.approvalStatus)+'</small><br><span>Email: '+esc(x.email)+' · Phone: '+esc(x.phone)+'</span><br><a href="'+esc(x.screenshotUrl)+'" target="_blank" rel="noopener">View payment proof</a><br><button data-edit="'+esc(x.registrationId)+'">EDIT</button> <button data-approve="'+esc(x.registrationId)+'">APPROVE</button> <button data-reject="'+esc(x.registrationId)+'">REJECT</button><div id="edit-'+esc(x.registrationId)+'"></div></div>').join("")||"<p>No registrations found.</p>";
+ $("#adminRows").innerHTML=filtered.map(x=>'<div class="admin-row"><b>'+esc(x.name)+'</b> · '+esc(x.guests)+' guest(s)<br><small>Payment Method: <b>'+esc(x.paymentMethod||"Not specified")+'</b><br>'+esc(x.registrationId)+' · '+esc(x.paymentReference)+' · '+esc(x.approvalStatus)+'</small><br><span>Email: '+esc(x.email)+' · Phone: '+esc(x.phone)+'</span><br><a href="'+esc(x.screenshotUrl)+'" target="_blank" rel="noopener">View payment proof</a><br><button type="button" class="admin-action admin-edit" data-edit="'+esc(x.registrationId)+'">EDIT</button> <button type="button" class="admin-action admin-approve '+(String(x.approvalStatus||"").toLowerCase()==="approved"?"is-approved":"")+'" data-approve="'+esc(x.registrationId)+'">'+(String(x.approvalStatus||"").toLowerCase()==="approved"?"APPROVED":"APPROVE")+'</button> <button type="button" class="admin-action admin-reject" data-reject="'+esc(x.registrationId)+'">REJECT</button><div id="edit-'+esc(x.registrationId)+'"></div></div>').join("")||"<p>No registrations found.</p>";
  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>showEditForm(records.find(x=>x.registrationId===b.dataset.edit)));
  document.querySelectorAll("[data-approve]").forEach(b=>b.onclick=()=>updateApproval(b.dataset.approve,"Approved"));
  document.querySelectorAll("[data-reject]").forEach(b=>b.onclick=()=>updateApproval(b.dataset.reject,"Rejected"));
