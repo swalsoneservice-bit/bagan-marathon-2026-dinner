@@ -194,3 +194,31 @@ opacity:.78;mix-blend-mode:screen;animation:discoPulse 2.8s steps(2,end) infinit
   #guests .guest-list li{transition:none}
   #guests .guest-list li:hover{transform:none}
 }
+
+
+/* Animated iridescent color flow inside each Official Dinner List capsule */
+#guests .guest-list li{
+  background:linear-gradient(115deg,
+    rgba(255,255,255,.94) 0%,
+    rgba(218,247,245,.88) 22%,
+    rgba(255,235,197,.88) 44%,
+    rgba(238,224,255,.86) 66%,
+    rgba(255,255,255,.94) 84%,
+    rgba(213,241,246,.9) 100%);
+  background-size:320% 320%;
+  animation:guestCapsuleColorFlow 9s ease-in-out infinite,guestCapsuleGlow 5s ease-in-out infinite;
+}
+#guests .guest-list li:nth-child(3n+2){animation-delay:-2.4s,-1.3s}
+#guests .guest-list li:nth-child(3n){animation-delay:-4.8s,-2.6s}
+@keyframes guestCapsuleColorFlow{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes guestCapsuleGlow{
+  0%,100%{box-shadow:0 7px 18px rgba(25,57,66,.075),inset 0 1px 0 rgba(255,255,255,.95)}
+  50%{box-shadow:0 9px 23px rgba(54,142,153,.15),0 0 13px rgba(214,173,98,.16),inset 0 1px 0 rgba(255,255,255,.98)}
+}
+@media(prefers-reduced-motion:reduce){
+  #guests .guest-list li{animation:none!important;background-position:50% 50%}
+}
